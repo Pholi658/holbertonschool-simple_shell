@@ -1,0 +1,20 @@
+.TH SIMPLE_SHELL 1 "November 2025" "Version 1.0" "User Commands"
+.SH NAME
+simple_shell \- my simple UNIX shell in C
+
+.SH SYNOPSIS
+.B simple_shell
+
+.SH DESCRIPTION
+A tiny shell that reads commands, runs programs, and handles basic built-ins.
+
+.SH BUILTINS
+.TP
+exit
+Exit the shell.
+.TP
+env
+Print environment variables.
+
+.SH AUTHOR
+Pholiso Toti <totipholiso@gmail.com>
