@@ -1,54 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include "shell.h"
 
-extern char **environ; /* Required for execve */
-
+/**
+ * main - Entry point of the simple shell
+ *
+ * Return: Always 0
+ */
 int main(void)
 {
-    char *line = NULL;
-    size_t bufsize = 0;
-    pid_t pid;
+char *line;
 
-    while (1)
-    {
-        printf("#cisfun$ ");
-        if (getline(&line, &bufsize, stdin) == -1)
-        {
-            printf("\n");
-            break;
-        }
+while (1)
+{
+printf("#cisfun$ ");
+line = read_line();
 
-        line[strcspn(line, "\n")] = '\0';
+if (line == NULL) /* Ctrl+D */
+{
+printf("\n");
+break;
+}
 
-        if (strcmp(line, "exit") == 0)
-            break;
+if (strcmp(line, "exit") == 0)
+{
+free(line);
+break;
+}
 
-        pid = fork();
-        if (pid == -1)
-        {
-            perror("fork");
-            continue;
-        }
+execute_command(line);
+free(line);
+}
 
-        if (pid == 0) /* child process */
-        {
-            char *args[2];
-            args[0] = line;
-            args[1] = NULL;
-
-            execve(line, args, environ);
-            perror(line); /* only prints if execve fails */
-            exit(EXIT_FAILURE);
-        }
-        else /* parent process */
-        {
-            wait(NULL);
-        }
-    }
-
-    free(line);
-    return 0;
+return (0);
 }
