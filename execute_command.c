@@ -1,34 +1,30 @@
 #include "shell.h"
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
- * execute_command - Forks and runs a command using execve
- * @line: command to run
- *
- * Return: nothing
+ * execute_command - Forks and executes a command with arguments
+ * @args: NULL-terminated array of strings (argv)
  */
-void execute_command(char *line)
+void execute_command(char **args)
 {
-pid_t pid;
-char *args[2];
+    pid_t pid;
+    int status;
 
-pid = fork();
-if (pid == -1)
-{
-perror("fork");
-return;
-}
+    if (args[0] == NULL)
+        return;
 
-if (pid == 0)
-{
-args[0] = line;
-args[1] = NULL;
-
-execve(line, args, environ);
-perror(line);
-exit(EXIT_FAILURE);
-}
-else
-{
-wait(NULL);
-}
+    pid = fork();
+    if (pid == 0) /* child */
+    {
+        execve(args[0], args, environ);
+        perror("./hsh"); /* execve failed */
+        exit(EXIT_FAILURE);
+    }
+    else if (pid > 0) /* parent */
+        wait(&status);
+    else
+        perror("fork");
 }

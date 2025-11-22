@@ -3,13 +3,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
 
 extern char **environ;
 
 char *read_line(void);
-void execute_command(char *line);
+void execute_command(char **args);
+char *trim_whitespace(char *str);
 
 #endif /* SHELL_H */

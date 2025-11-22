@@ -1,8 +1,6 @@
 #include "shell.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <sys/wait.h>
 
 /**
  * main - Entry point for simple_shell
@@ -11,47 +9,49 @@
  */
 int main(void)
 {
-char *line;
-char *cmd;
-size_t start, end;
+    char *line;
+    char *args[64];
+    char *token;
+    int i;
 
-while (1)
-{
-if (isatty(STDIN_FILENO))
-printf("#cisfun$ ");
+    while (1)
+    {
+        if (isatty(STDIN_FILENO))
+            printf("#cisfun$ ");
 
-line = read_line();
-if (line == NULL) /* Ctrl+D or EOF */
-{
-if (isatty(STDIN_FILENO))
-printf("\n");
-break;
-}
+        line = read_line();
+        if (line == NULL) /* Ctrl+D */
+        {
+            if (isatty(STDIN_FILENO))
+                printf("\n");
+            break;
+        }
 
-/* Trim leading spaces */
-start = 0;
-while (line[start] == ' ' || line[start] == '\t' || line[start] == '\n')
-start++;
+        /* Split line into args */
+        i = 0;
+        token = strtok(line, " \t\n");
+        while (token != NULL && i < 63)
+        {
+            args[i++] = token;
+            token = strtok(NULL, " \t\n");
+        }
+        args[i] = NULL;
 
-/* Trim trailing spaces */
-end = strlen(line);
-while (end > start && (line[end - 1] == ' ' || line[end - 1] == '\t' || line[end - 1] == '\n'))
-end--;
+        if (args[0] == NULL)
+        {
+            free(line);
+            continue;
+        }
 
-line[end] = '\0';
-cmd = line + start;
+        if (strcmp(args[0], "exit") == 0)
+        {
+            free(line);
+            break;
+        }
 
-if (strcmp(cmd, "exit") == 0)
-{
-free(line);
-break;
-}
+        execute_command(args);
+        free(line);
+    }
 
-if (*cmd != '\0') /* skip empty lines */
-execute_command(cmd);
-
-free(line);
-}
-
-return (0);
+    return (0);
 }
