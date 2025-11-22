@@ -11,11 +11,14 @@ char *line;
 
 while (1)
 {
+if (isatty(STDIN_FILENO))
 printf("#cisfun$ ");
+
 line = read_line();
 
-if (line == NULL) /* Ctrl+D */
+if (line == NULL) /* Ctrl+D or EOF from pipe */
 {
+if (isatty(STDIN_FILENO))
 printf("\n");
 break;
 }
