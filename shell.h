@@ -3,17 +3,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 
-extern char **environ;
-
-char *read_line(void);
-char **split_line(char *line);
-void execute_command(char **args);
-char *find_command(char *cmd);
+int execute(char *const command[], char **envp);
+void input(char **command, size_t *size);
+void printerror(char *const command[]);
+char **pathfinder(char *cmd, char **command, char **envp);
+int print_env(void);
+char *_getenv(const char *name, char **envp);
+void parse(char command[], char **envp);
 
 #endif
