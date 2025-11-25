@@ -1,21 +1,19 @@
 #include "shell.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 /**
- * read_line - Read a line of input from stdin
- * Return: pointer to the line (malloc'ed)
+ * read_line - Reads a line from stdin
+ * Return: pointer to buffer
  */
 char *read_line(void)
 {
-    char *line = NULL;
-    size_t bufsize = 0;
+char *buffer = NULL;
+size_t size = 0;
 
-    if (getline(&line, &bufsize, stdin) == -1)
-    {
-        free(line);
-        return NULL;
-    }
+if (getline(&buffer, &size, stdin) == -1)
+{
+free(buffer);
+return (NULL);
+}
 
-    return line;
+return (buffer);
 }

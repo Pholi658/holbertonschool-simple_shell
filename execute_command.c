@@ -1,30 +1,41 @@
 #include "shell.h"
-#include <sys/wait.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 /**
- * execute_command - Forks and executes a command with arguments
- * @args: NULL-terminated array of strings (argv)
+ * execute_command - runs a command
+ * @args: argument vector
  */
 void execute_command(char **args)
 {
-    pid_t pid;
-    int status;
+pid_t pid;
+char *cmd_path;
 
-    if (args[0] == NULL)
-        return;
+cmd_path = find_command(args[0]);
+if (!cmd_path)
+{
+fprintf(stderr, "%s: command not found\n", args[0]);
+return;
+}
 
-    pid = fork();
-    if (pid == 0) /* child */
-    {
-        execve(args[0], args, environ);
-        perror("./hsh"); /* execve failed */
-        exit(EXIT_FAILURE);
-    }
-    else if (pid > 0) /* parent */
-        wait(&status);
-    else
-        perror("fork");
+pid = fork();
+if (pid == -1)
+{
+perror("fork");
+return;
+}
+
+if (pid == 0)
+{
+if (execve(cmd_path, args, environ) == -1)
+{
+perror("execve");
+exit(EXIT_FAILURE);
+}
+}
+else
+{
+waitpid(pid, NULL, 0);
+}
+
+if (cmd_path != args[0])
+free(cmd_path);
 }

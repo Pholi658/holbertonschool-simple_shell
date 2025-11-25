@@ -1,57 +1,43 @@
 #include "shell.h"
-#include <string.h>
-#include <sys/wait.h>
 
 /**
- * main - Entry point for simple_shell
- *
- * Return: Always 0
+ * main - Simple shell main loop
+ * Return: 0
  */
 int main(void)
 {
-    char *line;
-    char *args[64];
-    char *token;
-    int i;
+char *line = NULL;
+char **args = NULL;
 
-    while (1)
-    {
-        if (isatty(STDIN_FILENO))
-            printf("#cisfun$ ");
+while (1)
+{
+printf("#cisfun$ ");
 
-        line = read_line();
-        if (line == NULL) /* Ctrl+D */
-        {
-            if (isatty(STDIN_FILENO))
-                printf("\n");
-            break;
-        }
+line = read_line();
+if (!line)
+{
+printf("\n");
+break;
+}
 
-        /* Split line into args */
-        i = 0;
-        token = strtok(line, " \t\n");
-        while (token != NULL && i < 63)
-        {
-            args[i++] = token;
-            token = strtok(NULL, " \t\n");
-        }
-        args[i] = NULL;
+args = split_line(line);
 
-        if (args[0] == NULL)
-        {
-            free(line);
-            continue;
-        }
+if (args[0] != NULL)
+{
+/* built-in exit */
+if (strcmp(args[0], "exit") == 0)
+{
+free(line);
+free(args);
+break;
+}
 
-        if (strcmp(args[0], "exit") == 0)
-        {
-            free(line);
-            break;
-        }
+execute_command(args);
+}
 
-        execute_command(args);
-        free(line);
-    }
+free(line);
+free(args);
+}
 
-    return (0);
+return (0);
 }
