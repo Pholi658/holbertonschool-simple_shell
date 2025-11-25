@@ -1,18 +1,20 @@
 #include "shell.h"
 
-char **env = NULL, *command = NULL;
+char **env = NULL;
+char *command = NULL;
 
 /**
- * print_env - prints the environment
- * Return: zero
+ * print_env - prints the environment variables to stdout
+ *
+ * Return: 0 on success, -1 if env is NULL
  */
-
 int print_env(void)
 {
 	int i = 0;
 
 	if (env == NULL)
 		return (-1);
+
 	while (env[i])
 	{
 		printf("%s\n", env[i++]);
@@ -21,55 +23,58 @@ int print_env(void)
 }
 
 /**
- * parse - tokenizes
- * @command: command from the user
- * @envp: enviroment path
+ * parse - tokenizes the input command and calls execute
+ * @command: command buffer (modified by strtok)
+ * @envp: environment array
  */
-
 void parse(char command[], char **envp)
 {
-	char *arguments[11];
-	char *token = strtok(command, " ");
-	int arg_count = 0;
+    char *arguments[11];
+    char *token = NULL;
+    int arg_count = 0;
 
+    if (command == NULL)
+        return;
 
-	while (token != NULL && arg_count < 10)
-	{
-		arguments[arg_count++] = token;
-		token = strtok(NULL, " ");
-	}
-	if (arg_count > 11)
-	{
-		perror("Error: Too many arguments");
-		return;
-	}
-	arguments[arg_count] = NULL;
-	if (arg_count > 0)
-	{
-		if (envp != NULL)
-			execute(arguments, envp);
-		else
-		{
-			fprintf(stderr, "./hsh: 1: %s: not found\n", arguments[0]);
-			exit(127);
-		}
-	}
+    token = strtok(command, " ");
+    while (token != NULL && arg_count < 10)
+    {
+        arguments[arg_count++] = token;
+        token = strtok(NULL, " ");
+    }
+
+    if (arg_count >= 10)
+    {
+        fprintf(stderr, "Error: Too many arguments\n");
+        return;
+    }
+
+    arguments[arg_count] = NULL;
+
+    if (arg_count > 0)
+    {
+        if (envp != NULL)
+            execute(arguments, envp);   /* <-- FIXED HERE */
+        else
+            fprintf(stderr, "./hsh: 1: %s: not found\n", arguments[0]);
+    }
 }
 
-/**
- * input - function to keep prompting user until exit
- * @command: argument to process
- * @size: size of argument
- */
 
+/**
+ * input - read a line from stdin, handle EOF and strip newline
+ * @command: pointer to buffer (may be reallocated by getline)
+ * @size: pointer to buffer size
+ */
 void input(char **command, size_t *size)
 {
-	size_t read_bytes;
+	ssize_t read_bytes;
 
 	read_bytes = getline(command, size, stdin);
-	if ((int) read_bytes == EOF)
+	if (read_bytes == -1)
 	{
-		if (isatty(STDIN_FILENO) != 0)
+		/* EOF or error */
+		if (isatty(STDIN_FILENO))
 			printf("\n");
 		if (*command != NULL)
 			free(*command);
@@ -80,53 +85,58 @@ void input(char **command, size_t *size)
 }
 
 /**
- * main - Shell, interactive or non interactive
- * @argc: argument count
- * @argv: argument vector
- * @envp: environmental variable
- * Return: 1 if command fails
+ * main - shell entrypoint (interactive or non-interactive)
+ * @argc: arg count
+ * @argv: arg vector
+ * @envp: environment variables
+ *
+ * Return: 0 on success, or exit with failure
  */
-
 int main(int argc, char *argv[], char **envp)
 {
 	size_t size;
 
+	(void)argv;
 	env = envp;
 	command = NULL;
-	(void) argv;
+
 	if (argc > 1)
 	{
-		printf("./shell: command does not exist\n");
+		fprintf(stderr, "./shell: command does not exist\n");
 		exit(EXIT_FAILURE);
 	}
+
 	while (1)
 	{
 		size = 0;
 		if (isatty(STDIN_FILENO))
 			printf("shell($) ");
 		input(&command, &size);
+
 		if (strcmp(command, "exit") == 0)
 		{
 			free(command);
 			exit(EXIT_SUCCESS);
 		}
+
 		if (strcmp(command, "env") == 0)
 		{
 			print_env();
 			free(command);
-			exit(EXIT_SUCCESS);
+			continue;
 		}
-		if (_getenv("PATH", envp) == NULL)
+
+		/* If PATH isn't set and command is not an absolute path, it's not found */
+		if (_getenv("PATH", envp) == NULL && command[0] != '/')
 		{
-			if (command[0] != '/')
-			{
-				fprintf(stderr, "./hsh: 1: %s: not found\n", command);
-				free(command);
-				exit(127);
-			}
+			fprintf(stderr, "./hsh: 1: %s: not found\n", command);
+			free(command);
+			continue;
 		}
+
 		parse(command, envp);
 		free(command);
+		command = NULL;
 	}
 	return (0);
 }
