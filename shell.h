@@ -9,7 +9,15 @@
 
 extern char **environ;
 
+/* Core functions */
 char *read_line(void);
-void execute_command(char *line);
+char **split_line(char *line);
+int execute_command(char **args, char *prog_name, unsigned int *line_count);
+void free_args(char **args);
+char *find_executable(char *cmd);
+
+/* Prompt */
+void print_prompt(void);
 
 #endif /* SHELL_H */
+

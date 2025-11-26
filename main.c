@@ -1,59 +1,33 @@
 #include "shell.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-/**
- * main - entry point for the simple shell
- * @argc: argument count
- * @argv: argument vector
- *
- * Return: 0 on success, 1 on failure
- */
 int main(int argc, char **argv)
 {
-	char *line;
-	char **args;
-	size_t n;
-	ssize_t read;
-	unsigned int line_count = 0;
+    char *line;
+    char **args;
+    unsigned int line_count = 0;
 
-	(void)argc;
-	(void)argv;
+    (void)argc;
 
-	while (1)
-	{
-		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "$ ", 2);
+    while (1)
+    {
+        print_prompt();
+        line = read_line();
+        if (!line)
+            break;
+        line_count++;
 
-		line = NULL;
-		n = 0;
-		read = getline(&line, &n, stdin);
+        args = split_line(line);
+        if (!args)
+        {
+            free(line);
+            continue;
+        }
 
-		if (read == -1)
-		{
-			write(STDOUT_FILENO, "\n", 1);
-			free(line);
-			exit(EXIT_SUCCESS);
-		}
+        execute_command(args, argv[0], &line_count);
+        free_args(args);
+        free(line);
+    }
 
-		line_count++;
-
-		args = split_line(line);
-		if (args[0] != NULL)
-		{
-			if (execute_command(args, &line_count) == -1)
-			{
-				free_args(args);
-				free(line);
-				continue;
-			}
-		}
-
-		free_args(args);
-		free(line);
-	}
-
-	return (0);
+    return (0);
 }
 

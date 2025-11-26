@@ -1,45 +1,50 @@
 #include "shell.h"
 
 /**
- * execute_command - execute command using fork/execve
- * @args: array of args
- * @line_count: current line number
- * Return: 0 always
+ * execute_command - executes a command in a child process
+ * @args: array of arguments
+ * @prog_name: name of shell program (argv[0])
+ * @line_count: line counter for errors
+ * Return: 0 on success, -1 on failure
  */
-int execute_command(char **args, unsigned int *line_count)
+int execute_command(char **args, char *prog_name, unsigned int *line_count)
 {
     pid_t pid;
     int status;
-    char *prog_path;
+    char *cmd_path;
 
-    if (_strcmp(args[0], "exit") == 0)
+    if (!args || !args[0])
+        return (0);
+
+    /* Built-in exit */
+    if (strcmp(args[0], "exit") == 0)
         exit(0);
 
-    prog_path = find_executable(args[0]);
-    if (!prog_path)
+    /* Find executable in PATH or absolute path */
+    cmd_path = find_executable(args[0]);
+    if (!cmd_path)
     {
-        fprintf(stderr, "%s: %u: %s: not found\n",
-                args[0], *line_count, args[0]);
-        return (0);
+        fprintf(stderr, "%s: %u: %s: not found\n", prog_name, *line_count, args[0]);
+        return (-1);
     }
 
     pid = fork();
-    if (pid == -1)
+    if (pid == 0) /* child */
     {
-        perror("fork");
-        free(prog_path);
-        return (1);
-    }
-    if (pid == 0)
-    {
-        execve(prog_path, args, environ);
+        execve(cmd_path, args, environ);
         perror("execve");
         exit(1);
     }
+    else if (pid > 0) /* parent */
+        waitpid(pid, &status, 0);
     else
-        wait(&status);
+    {
+        perror("fork");
+        free(cmd_path);
+        return (-1);
+    }
 
-    free(prog_path);
+    free(cmd_path);
     return (0);
 }
 

@@ -1,49 +1,50 @@
 #include "shell.h"
 
 /**
- * find_executable - find full path for a command
- * @cmd: command
- * Return: path string or NULL
+ * find_executable - searches for command in PATH
+ * @cmd: command name
+ * Return: full path or NULL if not found
  */
 char *find_executable(char *cmd)
 {
     char *path_env, *path_dup, *full_path;
-    char *dir;
+    char *token;
     size_t len;
 
-    if (access(cmd, X_OK) == 0)
-        return (_strdup(cmd));
+    if (!cmd)
+        return (NULL);
+
+    /* Absolute path given */
+    if (cmd[0] == '/' || cmd[0] == '.')
+    {
+        if (access(cmd, X_OK) == 0)
+            return (strdup(cmd));
+        return (NULL);
+    }
 
     path_env = getenv("PATH");
     if (!path_env)
         return (NULL);
 
-    path_dup = _strdup(path_env);
-    if (!path_dup)
-        return (NULL);
-
-    dir = strtok(path_dup, ":");
-    while (dir)
+    path_dup = strdup(path_env);
+    token = strtok(path_dup, ":");
+    while (token)
     {
-        len = _strlen(dir) + _strlen(cmd) + 2;
-        full_path = malloc(sizeof(char) * len);
+        len = strlen(token) + strlen(cmd) + 2;
+        full_path = malloc(len);
         if (!full_path)
         {
             free(path_dup);
             return (NULL);
         }
-        _strcpy(full_path, dir);
-        _strcat(full_path, "/");
-        _strcat(full_path, cmd);
-
+        snprintf(full_path, len, "%s/%s", token, cmd);
         if (access(full_path, X_OK) == 0)
         {
             free(path_dup);
             return (full_path);
         }
-
         free(full_path);
-        dir = strtok(NULL, ":");
+        token = strtok(NULL, ":");
     }
 
     free(path_dup);

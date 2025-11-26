@@ -1,78 +1,54 @@
 #include "shell.h"
 
-/* Duplicate string */
-char *_strdup(char *str)
-{
-    int len = 0, i;
-    char *dup;
-
-    if (!str)
-        return (NULL);
-
-    while (str[len])
-        len++;
-
-    dup = malloc(len + 1);
-    if (!dup)
-        return (NULL);
-
-    for (i = 0; i < len; i++)
-        dup[i] = str[i];
-    dup[len] = '\0';
-
-    return (dup);
-}
-
-/* String length */
-size_t _strlen(char *s)
-{
-    size_t len = 0;
-
-    while (s[len])
-        len++;
-    return (len);
-}
-
-/* String copy */
-char *_strcpy(char *dest, char *src)
+void free_args(char **args)
 {
     int i = 0;
-
-    while (src[i])
-    {
-        dest[i] = src[i];
-        i++;
-    }
-    dest[i] = '\0';
-    return (dest);
+    if (!args)
+        return;
+    while (args[i])
+        free(args[i++]);
+    free(args);
 }
 
-/* String concatenation */
-char *_strcat(char *dest, char *src)
+char **split_line(char *line)
 {
-    int i = 0, j = 0;
+    char **tokens = NULL;
+    char *token;
+    int count = 0;
+    char *line_dup;
 
-    while (dest[i])
-        i++;
+    if (!line)
+        return (NULL);
 
-    while (src[j])
-        dest[i++] = src[j++];
-
-    dest[i] = '\0';
-    return (dest);
+    line_dup = strdup(line);
+    token = strtok(line_dup, " \t\n");
+    while (token)
+    {
+        tokens = realloc(tokens, sizeof(char *) * (count + 2));
+        tokens[count] = strdup(token);
+        count++;
+        token = strtok(NULL, " \t\n");
+    }
+    if (tokens)
+        tokens[count] = NULL;
+    free(line_dup);
+    return (tokens);
 }
 
-/* String compare */
-int _strcmp(char *s1, char *s2)
+char *read_line(void)
 {
-    int i = 0;
-
-    while (s1[i] && s2[i])
+    char *line = NULL;
+    size_t bufsize = 0;
+    if (getline(&line, &bufsize, stdin) == -1)
     {
-        if (s1[i] != s2[i])
-            return (s1[i] - s2[i]);
-        i++;
+        free(line);
+        return (NULL);
     }
-    return (s1[i] - s2[i]);
+    return (line);
+}
+
+void print_prompt(void)
+{
+    write(STDOUT_FILENO, "($) ", 4);
 }
 
