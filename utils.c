@@ -1,54 +1,69 @@
+#include <unistd.h>
 #include "shell.h"
 
+/**
+ * free_args - frees a token array
+ */
 void free_args(char **args)
 {
     int i = 0;
+
     if (!args)
         return;
     while (args[i])
-        free(args[i++]);
+    {
+        free(args[i]);
+        i++;
+    }
     free(args);
 }
 
-char **split_line(char *line)
+/* Simple string helper functions */
+size_t _strlen(char *s)
 {
-    char **tokens = NULL;
-    char *token;
-    int count = 0;
-    char *line_dup;
-
-    if (!line)
-        return (NULL);
-
-    line_dup = strdup(line);
-    token = strtok(line_dup, " \t\n");
-    while (token)
-    {
-        tokens = realloc(tokens, sizeof(char *) * (count + 2));
-        tokens[count] = strdup(token);
-        count++;
-        token = strtok(NULL, " \t\n");
-    }
-    if (tokens)
-        tokens[count] = NULL;
-    free(line_dup);
-    return (tokens);
+    size_t i = 0;
+    while (s[i])
+        i++;
+    return (i);
 }
 
-char *read_line(void)
+char *_strdup(char *s)
 {
-    char *line = NULL;
-    size_t bufsize = 0;
-    if (getline(&line, &bufsize, stdin) == -1)
-    {
-        free(line);
+    int len = _strlen(s);
+    char *copy = malloc(len + 1);
+    int i;
+
+    if (!copy)
         return (NULL);
-    }
-    return (line);
+
+    for (i = 0; i <= len; i++)
+        copy[i] = s[i];
+    return (copy);
 }
 
-void print_prompt(void)
+char *_strcpy(char *dest, char *src)
 {
-    write(STDOUT_FILENO, "($) ", 4);
+    int i = 0;
+    while ((dest[i] = src[i]) != '\0')
+        i++;
+    return (dest);
+}
+
+char *_strcat(char *dest, char *src)
+{
+    int i = 0, j = 0;
+    while (dest[i])
+        i++;
+    while ((dest[i++] = src[j++]) != '\0')
+        ;
+    return (dest);
+}
+
+int _strcmp(char *s1, char *s2)
+{
+    int i = 0;
+    while (s1[i] && s1[i] == s2[i])
+        i++;
+    return (s1[i] - s2[i]);
 }
 

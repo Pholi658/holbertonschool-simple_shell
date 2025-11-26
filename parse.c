@@ -1,55 +1,35 @@
 #include "shell.h"
 
 /**
- * split_line - splits a line into words
+ * split_line - splits a line into tokens
  * @line: input line
- * Return: array of strings
+ * Return: NULL-terminated array of strings
  */
 char **split_line(char *line)
 {
-    int bufsize = 64, pos = 0;
-    char **tokens;
+    int bufsize = 64, position = 0;
+    char **tokens = malloc(bufsize * sizeof(char *));
     char *token;
 
-    tokens = malloc(sizeof(char *) * bufsize);
     if (!tokens)
-        exit(1);
+        exit(EXIT_FAILURE);
 
-    token = strtok(line, " \t\n");
-    while (token)
+    token = strtok(line, " \t\r\n");
+    while (token != NULL)
     {
-        tokens[pos++] = _strdup(token);
+        tokens[position++] = _strdup(token);
 
-        if (pos >= bufsize)
+        if (position >= bufsize)
         {
             bufsize += 64;
-            tokens = realloc(tokens, sizeof(char *) * bufsize);
+            tokens = realloc(tokens, bufsize * sizeof(char *));
             if (!tokens)
-                exit(1);
+                exit(EXIT_FAILURE);
         }
 
-        token = strtok(NULL, " \t\n");
+        token = strtok(NULL, " \t\r\n");
     }
-    tokens[pos] = NULL;
+    tokens[position] = NULL;
     return (tokens);
-}
-
-/**
- * free_args - frees array of strings
- * @args: array of strings
- */
-void free_args(char **args)
-{
-    int i = 0;
-
-    if (!args)
-        return;
-
-    while (args[i])
-    {
-        free(args[i]);
-        i++;
-    }
-    free(args);
 }
 
