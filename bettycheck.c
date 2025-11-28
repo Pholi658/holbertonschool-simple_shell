@@ -1,0 +1,13 @@
+#include <stdio.h>
+
+/**
+ *main - this is the beginning of the function.
+ *
+ *Return: This is the end of the function
+ */
+
+int main(void)
+{
+printf("Hello World!");
+return (0);
+}
